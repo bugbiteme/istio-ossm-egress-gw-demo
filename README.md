@@ -2,10 +2,10 @@
 
 ## Running the API locally
 
-The demo API (`rhel/app.py`) is a small FastAPI app. To run it locally:
+The demo API (`api/app.py`) is a small FastAPI app. To run it locally:
 
 ```bash
-cd rhel
+cd api
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -29,3 +29,4 @@ curl -H "X-Custom-Test: hello" http://127.0.0.1:8000/headers
 # Send multiple headers
 curl -H "X-Custom-Test: hello" -H "X-Another-Header: world" http://127.0.0.1:8000/headers
 ```
+
