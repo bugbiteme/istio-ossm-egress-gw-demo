@@ -1,0 +1,24 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: external-api-2
+    app.kubernetes.io/component: external-api-2
+    app.kubernetes.io/instance: external-api-2
+    app.kubernetes.io/name: external-api-2
+    app.kubernetes.io/part-of: external-api-2
+    app.openshift.io/runtime-version: latest
+  name: external-api-2
+  namespace: external-cluster-api
+spec:
+  host: external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  port:
+    targetPort: 8080-tcp
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: external-api-2
+    weight: 100
+  wildcardPolicy: None

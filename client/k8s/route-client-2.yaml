@@ -1,0 +1,24 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: internal-client-2
+    app.kubernetes.io/component: internal-client-2
+    app.kubernetes.io/instance: internal-client-2
+    app.kubernetes.io/name: internal-client-2
+    app.kubernetes.io/part-of: internal-client-2
+    app.openshift.io/runtime-version: latest
+  name: internal-client-2
+  namespace: internal-client-2
+spec:
+  host: internal-client-2.apps.cluster-jj7tx.jj7tx.sandbox2671.opentlc.com
+  port:
+    targetPort: 8080-tcp
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: internal-client-2
+    weight: 100
+  wildcardPolicy: None

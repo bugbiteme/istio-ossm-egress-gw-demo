@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-discovery: disabled
+    istio-injection: disabled
+  name: internal-client-2

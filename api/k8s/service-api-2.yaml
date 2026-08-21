@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: external-api-2
+    app.kubernetes.io/component: external-api-2
+    app.kubernetes.io/instance: external-api-2
+    app.kubernetes.io/name: external-api-2
+    app.kubernetes.io/part-of: external-api-2
+    app.openshift.io/runtime-version: latest
+  name: external-api-2
+  namespace: external-cluster-api
+spec:
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: 8080-tcp
+    port: 8080
+  selector:
+    app: external-api-2
+    deployment: external-api-2

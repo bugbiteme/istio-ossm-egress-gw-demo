@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-connectivity
+  namespace: internal-client-2
+immutable: false
+data:
+  API_FQDN: external-api-1.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  API_FQDN_2: external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+

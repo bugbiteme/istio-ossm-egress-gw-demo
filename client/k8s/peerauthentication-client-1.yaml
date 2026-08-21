@@ -1,0 +1,8 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: internal-client-1-permissive-ingress
+  namespace: internal-client-1
+spec:
+  mtls:
+    mode: PERMISSIVE
