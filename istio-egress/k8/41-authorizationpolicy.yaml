@@ -1,0 +1,48 @@
+# Identity-based allowlist on the egress gateway, per ADR-002 ("teams add
+# explicit allow rules" against a deny-all default). This policy is scoped
+# to the egress gateway workload only -- it does not touch other namespaces
+# (e.g. bookinfo), so it doesn't change behavior anywhere else in the mesh.
+#
+# In Istio, a workload with at least one ALLOW AuthorizationPolicy selecting
+# it becomes implicit-deny for everything that doesn't match, so listing
+# only the allowed (identity, destination host) pairs below is sufficient --
+# no separate deny-all object needed, and no rule is needed for the denied
+# combination.
+#
+# The identity check (source.principals) only works because Hop 1 is
+# explicitly ISTIO_MUTUAL (see 20-gateway.yaml / 30-destinationrule-hop1-mtls.yaml)
+# -- without that, the gateway has no caller identity to evaluate here.
+#
+# The access matrix this implements (see istio-egress/README.md):
+#   client-secure -> external-api    ALLOW
+#   client-secure -> external-api-2  ALLOW
+#   client-2      -> external-api-2  ALLOW
+#   client-2      -> external-api    DENY (no matching rule -- implicit)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-egress-clients
+  namespace: egress-gateway
+spec:
+  selector:
+    matchLabels:
+      istio: egressgateway
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/client-secure/sa/default"
+      to:
+        - operation:
+            hosts:
+              - "external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com"
+              - "external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com"
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/client-2/sa/default"
+      to:
+        - operation:
+            hosts:
+              - "external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com"

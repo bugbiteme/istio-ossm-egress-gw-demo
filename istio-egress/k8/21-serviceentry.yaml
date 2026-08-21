@@ -1,0 +1,21 @@
+# Registers the external API as a known mesh-external host. Because the
+# Istio CR sets outboundTrafficPolicy.mode: REGISTRY_ONLY (already applied
+# on this cluster), traffic to any host WITHOUT a matching ServiceEntry is
+# blocked outright -- this is the allowlist ADR-002 relies on.
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: external-api
+  namespace: client-secure
+spec:
+  hosts:
+    - external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http-port
+      protocol: HTTP
+    - number: 443
+      name: tls-port
+      protocol: TLS

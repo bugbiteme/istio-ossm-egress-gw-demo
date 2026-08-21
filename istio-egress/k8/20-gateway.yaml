@@ -1,0 +1,24 @@
+# Hop 1 (sidecar -> egress gateway): the internal-facing listener the
+# client's Envoy sidecar connects to. Per ADR-002, this must explicitly
+# set tls.mode: ISTIO_MUTUAL (paired with the DestinationRule in
+# 30-destinationrule-hop1-mtls.yaml) so the gateway can cryptographically
+# identify the calling workload for AuthorizationPolicy — this is NOT the
+# mesh's default behavior and must be configured explicitly.
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: egressgateway-hop1
+  namespace: egress-gateway
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+    - port:
+        number: 443
+        name: https-internal
+        protocol: HTTPS
+      hosts:
+        - external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+        - external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+      tls:
+        mode: ISTIO_MUTUAL

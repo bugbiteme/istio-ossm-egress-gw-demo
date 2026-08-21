@@ -1,0 +1,43 @@
+# Hop 1 (sidecar -> egress gateway): tells CALLING sidecars to wrap their
+# connection to the egress gateway Service in Istio's own mesh mTLS
+# (istiod-issued SPIFFE certs). Paired with the ISTIO_MUTUAL listener in
+# 20-gateway.yaml. Per ADR-002, both sides must be explicit -- leaving this
+# at mesh defaults means the gateway cannot evaluate source.principal in
+# AuthorizationPolicy.
+#
+# Lives in egress-gateway (the gateway's own namespace), not in a calling
+# client's namespace: this rule describes how to reach the gateway, which
+# is a property of the gateway, not of any particular caller. It was
+# originally placed in client-secure, exported mesh-wide via
+# defaultDestinationRuleExportTo: ["*"] -- that didn't reliably reach a
+# second caller (client-2) added later, for reasons not fully root-caused
+# (explicit exportTo: ["*"] on the rule didn't help either). A namespace-
+# local copy worked immediately, so this was consolidated to the one place
+# guaranteed visible to every caller instead of relying on cross-namespace
+# export. See HOW-IT-WORKS.md for the full story.
+#
+# sni is set explicitly to match the Gateway's declared `hosts`
+# (20-gateway.yaml): Istio's HTTPS-protocol Gateway listeners use an
+# SNI-based filter chain match, and the default auto-generated SNI for a
+# plain ISTIO_MUTUAL DestinationRule doesn't match it -- without this, the
+# gateway never matches a filter chain for the incoming connection and
+# silently drops it (observed as cx_connect_fail on the client sidecar).
+# Only one SNI value is needed here even though the gateway now serves two
+# external hosts: SNI only selects the filter chain (both hosts share the
+# same one), not the final destination -- that's resolved later by the
+# VirtualService matching on the HTTP Host header, after Hop 1's mTLS is
+# already terminated.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: egressgateway-hop1-mtls
+  namespace: egress-gateway
+spec:
+  host: egressgateway.egress-gateway.svc.cluster.local
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 443
+        tls:
+          mode: ISTIO_MUTUAL
+          sni: external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com

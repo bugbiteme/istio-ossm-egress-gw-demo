@@ -1,0 +1,17 @@
+# Hop 2 for the second external system. Same as 31-destinationrule-hop2-tls.yaml,
+# separate resource because it's a different destination host with its own
+# TLS settings.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: external-api-2-hop2-tls
+  namespace: client-secure
+spec:
+  host: external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 443
+        tls:
+          mode: SIMPLE
+          sni: external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com

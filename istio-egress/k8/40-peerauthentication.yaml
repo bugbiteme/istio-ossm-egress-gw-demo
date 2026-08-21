@@ -1,0 +1,13 @@
+# Mesh-wide STRICT mTLS, per ADR-002's Onboarding Model ("PeerAuthentication
+# -> STRICT mTLS for all namespaces"). Applied in the root namespace
+# (istio-system) so it takes effect mesh-wide, not just for this demo's
+# namespaces. Plaintext connections between mesh-enrolled services are
+# rejected at the proxy level.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT

@@ -1,0 +1,29 @@
+# Hop 2 (egress gateway -> external API): TLS origination. The egress
+# gateway performs the actual TLS handshake to the real external host on
+# behalf of the client, which never speaks TLS itself.
+#
+# Mode is SIMPLE (server-authenticated TLS), not MUTUAL, because the demo
+# API (api/app.py, deployed on the other cluster) does not perform client
+# certificate authentication -- there is no client cert for the gateway to
+# present. The API's OpenShift Route serves a publicly-trusted Let's
+# Encrypt certificate, so no custom caCertificates bundle is needed either;
+# the proxy's default trust store already covers it.
+#
+# For a real external system that DOES require mTLS, per ADR-002 Hop 2
+# this would instead be tls.mode: MUTUAL with credentialName pointing at a
+# Kubernetes Secret (client cert/key/CA) mounted in the egress-gateway
+# namespace -- see the ADR's "Hop 2" and Next Steps #8 for that pattern.
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: external-api-hop2-tls
+  namespace: client-secure
+spec:
+  host: external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 443
+        tls:
+          mode: SIMPLE
+          sni: external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com

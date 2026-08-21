@@ -1,0 +1,13 @@
+# Dedicated namespace for the egress gateway workload, per ADR-002's guidance
+# that the gateway is deployed independently of the control plane lifecycle,
+# in its own namespace, as an ordinary Deployment/Service using gateway
+# injection (OSSM 3 / Sail no longer deploys gateways via the operator).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: egress-gateway
+  labels:
+    # Matches this mesh's discoverySelectors (see istio-system Istio CR),
+    # same pattern already used by the client-secure and bookinfo namespaces.
+    istio-discovery: enabled
+    istio-injection: enabled

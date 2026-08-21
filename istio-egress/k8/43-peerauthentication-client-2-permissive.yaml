@@ -1,0 +1,11 @@
+# Same fix as 42-peerauthentication-client-secure-permissive.yaml, for
+# client-2: its OpenShift Route also bypasses the mesh, so it needs the
+# same PERMISSIVE override for inbound traffic under mesh-wide STRICT.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: client-2-permissive-ingress
+  namespace: client-2
+spec:
+  mtls:
+    mode: PERMISSIVE

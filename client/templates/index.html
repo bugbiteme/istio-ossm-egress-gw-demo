@@ -7,8 +7,10 @@
     :root { color-scheme: light; }
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; background: #ffffff; color: #1a1a1a; }
     h1 { font-size: 1.4rem; }
-    .target { color: #555; margin-bottom: 1.5rem; }
+    .target-group { border: 1px solid #ccc; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; }
+    .target { color: #555; margin: 0 0 1rem; }
     .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .card:last-child { margin-bottom: 0; }
     .card h2 { font-size: 1rem; margin: 0 0 0.5rem; }
     pre { background: #f6f6f6; padding: 0.75rem; border-radius: 6px; overflow-x: auto; }
     .ok { color: #0a7a2a; }
@@ -18,25 +20,30 @@
 </head>
 <body>
   <h1>Egress Gateway Demo Client</h1>
-  <p class="target">Calling API at <code>{{ api_base_url }}</code></p>
 
-  <div class="card">
-    <h2>GET / <span class="{{ 'ok' if root_result.ok else 'error' }}">{{ 'OK' if root_result.ok else 'ERROR' }}</span></h2>
-    {% if root_result.ok %}
-      <pre>{{ root_result.data | tojson(indent=2) }}</pre>
-    {% else %}
-      <pre class="error">{{ root_result.error }}</pre>
-    {% endif %}
-  </div>
+  {% for t in targets %}
+  <div class="target-group">
+    <p class="target">Calling API at <code>{{ t.api_base_url }}</code></p>
 
-  <div class="card">
-    <h2>GET /headers <span class="{{ 'ok' if headers_result.ok else 'error' }}">{{ 'OK' if headers_result.ok else 'ERROR' }}</span></h2>
-    {% if headers_result.ok %}
-      <pre>{{ headers_result.data | tojson(indent=2) }}</pre>
-    {% else %}
-      <pre class="error">{{ headers_result.error }}</pre>
-    {% endif %}
+    <div class="card">
+      <h2>GET / <span class="{{ 'ok' if t.root_result.ok else 'error' }}">{{ 'OK' if t.root_result.ok else 'ERROR' }}</span></h2>
+      {% if t.root_result.ok %}
+        <pre>{{ t.root_result.data | tojson(indent=2) }}</pre>
+      {% else %}
+        <pre class="error">{{ t.root_result.error }}</pre>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>GET /headers <span class="{{ 'ok' if t.headers_result.ok else 'error' }}">{{ 'OK' if t.headers_result.ok else 'ERROR' }}</span></h2>
+      {% if t.headers_result.ok %}
+        <pre>{{ t.headers_result.data | tojson(indent=2) }}</pre>
+      {% else %}
+        <pre class="error">{{ t.headers_result.error }}</pre>
+      {% endif %}
+    </div>
   </div>
+  {% endfor %}
 
   <a class="refresh" href="/">Refresh</a>
 </body>

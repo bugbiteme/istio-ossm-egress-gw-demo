@@ -9,32 +9,43 @@ API_FQDN = os.environ.get("API_FQDN", "localhost:8000")
 API_SCHEME = os.environ.get("API_SCHEME", "https")
 API_BASE_URL = f"{API_SCHEME}://{API_FQDN}"
 
+# Optional second target, so one client can demonstrate calling multiple
+# external systems through the same egress gateway side by side.
+API_FQDN_2 = os.environ.get("API_FQDN_2")
+API_SCHEME_2 = os.environ.get("API_SCHEME_2", "https")
+API_BASE_URL_2 = f"{API_SCHEME_2}://{API_FQDN_2}" if API_FQDN_2 else None
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 
-async def call_api(path: str):
+async def call_api(base_url: str, path: str):
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{API_BASE_URL}{path}")
+            response = await client.get(f"{base_url}{path}")
             response.raise_for_status()
             return {"ok": True, "data": response.json()}
     except httpx.HTTPError as exc:
         return {"ok": False, "error": str(exc)}
 
 
+async def call_target(base_url: str):
+    return {
+        "api_base_url": base_url,
+        "root_result": await call_api(base_url, "/"),
+        "headers_result": await call_api(base_url, "/headers"),
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    root_result = await call_api("/")
-    headers_result = await call_api("/headers")
+    targets = [await call_target(API_BASE_URL)]
+    if API_BASE_URL_2:
+        targets.append(await call_target(API_BASE_URL_2))
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={
-            "api_base_url": API_BASE_URL,
-            "root_result": root_result,
-            "headers_result": headers_result,
-        },
+        context={"targets": targets},
     )
 
 

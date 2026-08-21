@@ -1,0 +1,38 @@
+# Routes traffic to the external API in two stages, matched by which
+# gateway the request is currently passing through:
+#   1. From the client's sidecar ("mesh") on port 80 (plain HTTP -- the
+#      client itself never speaks TLS; see client Deployment API_SCHEME=http)
+#      -> forwarded to the egress gateway's internal ISTIO_MUTUAL listener.
+#   2. From the egress gateway itself -> forwarded on to the real external
+#      host on port 443, where the Hop 2 DestinationRule
+#      (31-destinationrule-hop2-tls.yaml) performs TLS origination.
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: external-api-via-egress
+  namespace: client-secure
+spec:
+  hosts:
+    - external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  gateways:
+    - mesh
+    - egress-gateway/egressgateway-hop1
+  http:
+    - match:
+        - gateways:
+            - mesh
+          port: 80
+      route:
+        - destination:
+            host: egressgateway.egress-gateway.svc.cluster.local
+            port:
+              number: 443
+    - match:
+        - gateways:
+            - egress-gateway/egressgateway-hop1
+          port: 443
+      route:
+        - destination:
+            host: external-api.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+            port:
+              number: 443

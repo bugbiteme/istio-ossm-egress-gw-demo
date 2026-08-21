@@ -1,0 +1,53 @@
+# The egress gateway proxy itself: a plain Deployment/Service pair using
+# Istio's "gateway injection" (inject.istio.io/templates: gateway), per
+# ADR-002 — OSSM 3's Sail operator does not deploy gateways, so this is
+# managed like any other application workload.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: egressgateway
+  namespace: egress-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: egressgateway
+  namespace: egress-gateway
+  labels:
+    istio: egressgateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      istio: egressgateway
+  template:
+    metadata:
+      labels:
+        istio: egressgateway
+        sidecar.istio.io/inject: "true"
+      annotations:
+        # Switches the injected proxy from a transparent sidecar to a
+        # standalone gateway proxy that terminates/originates traffic
+        # for the Gateway resource that selects it (see 20-gateway.yaml).
+        inject.istio.io/templates: "gateway"
+    spec:
+      serviceAccountName: egressgateway
+      containers:
+        - name: istio-proxy
+          image: auto
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: egressgateway
+  namespace: egress-gateway
+  labels:
+    istio: egressgateway
+spec:
+  type: ClusterIP
+  selector:
+    istio: egressgateway
+  ports:
+    - name: https-internal
+      port: 443
+      targetPort: 443

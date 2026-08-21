@@ -1,0 +1,21 @@
+# Second external system, reachable through the SAME egress gateway
+# workload as external-api (21-serviceentry.yaml) -- demonstrates that
+# adding another external system doesn't mean deploying another gateway,
+# just more config on the one that already exists.
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: external-api-2
+  namespace: client-secure
+spec:
+  hosts:
+    - external-api-2-external-api-2.apps.cluster-bdvkn.bdvkn.sandbox980.opentlc.com
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http-port
+      protocol: HTTP
+    - number: 443
+      name: tls-port
+      protocol: TLS

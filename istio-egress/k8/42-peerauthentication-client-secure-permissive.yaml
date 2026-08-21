@@ -1,0 +1,21 @@
+# Override for client-secure only: the client's OpenShift Route bypasses
+# the mesh (it hits the client-secure Service/pod directly, not through the
+# Istio ingress gateway), so the OpenShift router talks to the pod in
+# plaintext. Under the mesh-wide STRICT policy (40-peerauthentication.yaml)
+# that connection is rejected at the sidecar -- observed as a 502 from the
+# route after applying STRICT mesh-wide.
+#
+# This namespace-scoped override restores PERMISSIVE (accept both
+# plaintext and mTLS) for client-secure's inbound traffic only. It does
+# NOT weaken Hop 1 (sidecar -> egress gateway): that hop's mTLS is forced
+# by the DestinationRule's tls.mode: ISTIO_MUTUAL in
+# 30-destinationrule-hop1-mtls.yaml, which governs outbound traffic and is
+# unaffected by this (PeerAuthentication only governs inbound).
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: client-secure-permissive-ingress
+  namespace: client-secure
+spec:
+  mtls:
+    mode: PERMISSIVE
